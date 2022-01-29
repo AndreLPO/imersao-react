@@ -189,7 +189,7 @@ export default function PaginaInicial() {
             >
               {username}
             </Text>
-            {/* <Text
+            <Text
               variant="body4"
               styleSheet={{
                 color: appConfig.theme.colors.neutrals[200],
@@ -198,8 +198,8 @@ export default function PaginaInicial() {
                 borderRadius: "1000px",
               }}
             >
-              {dados}
-            </Text> */}
+              Testeeee
+            </Text>
           </Box>
           {/* Photo Area */}
         </Box>
