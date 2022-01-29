@@ -1,6 +1,6 @@
 //Componente React
 import { Box, Button, Text, TextField, Image } from "@skynexui/components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import appConfig from "../config.json";
 
@@ -37,6 +37,19 @@ export default function PaginaInicial() {
   const [username, setUsername] = useState("AndreLPO");
   const [color, setColor] = useState("#57AE5B");
   const roteamento = useRouter();
+
+  // const [dados, setDados] = useState();
+
+  // useEffect(() => {
+  //   fetch(`https://api.github.com/users/${username}`).then(async (response) => {
+  //     const retornoEsperado = await response.json();
+  //     console.log(retornoEsperado);
+  //     if (retornoEsperado !== undefined) {
+  //       setDados(retornoEsperado.public_repos);
+  //     }
+  //   });
+  // }, [username]);
+
   return (
     <>
       <Box
@@ -176,6 +189,17 @@ export default function PaginaInicial() {
             >
               {username}
             </Text>
+            {/* <Text
+              variant="body4"
+              styleSheet={{
+                color: appConfig.theme.colors.neutrals[200],
+                backgroundColor: appConfig.theme.colors.neutrals[900],
+                padding: "3px 10px",
+                borderRadius: "1000px",
+              }}
+            >
+              {dados}
+            </Text> */}
           </Box>
           {/* Photo Area */}
         </Box>

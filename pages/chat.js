@@ -1,19 +1,38 @@
 import { Box, Text, TextField, Image, Button } from "@skynexui/components";
 import React, { useEffect, useState } from "react";
 import appConfig from "../config.json";
+import { createClient } from "@supabase/supabase-js";
 
 export default function ChatPage() {
   // Sua lógica vai aqui
   const [mensagem, setMensagem] = useState();
   const [listaMensagem, setListaMensagem] = useState([]);
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+  useEffect(() => {
+    supabaseClient
+      .from("MENSAGENS")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setListaMensagem(data);
+      });
+  }, []);
+
   function handleNovaMensagem(novaMensagem) {
     const mensagem = {
-      id: listaMensagem.length,
-      deQuem: "vanessa",
-      textoMensagem: novaMensagem,
+      de: "vanessa",
+      texto: novaMensagem,
     };
-    setListaMensagem([mensagem, ...listaMensagem]);
+    supabaseClient
+      .from("MENSAGENS")
+      .insert([mensagem])
+      .then(({ data }) => {
+        setListaMensagem([data[0], ...listaMensagem]);
+      });
     setMensagem("");
   }
   // ./Sua lógica vai aqui
@@ -59,7 +78,7 @@ export default function ChatPage() {
           }}
         >
           {/* {listaMensagem.map((msg) => {
-            return <li key={msg.id}>{msg.textoMensagem}</li>;
+            return <li key={msg.id}>{msg.texto}</li>;
           })} */}
           <MessageList mensagens={listaMensagem} />
           <Box
@@ -169,7 +188,7 @@ function MessageList(props) {
                   display: "inline-block",
                   marginRight: "8px",
                 }}
-                src={`https://github.com/vanessametonini.png`}
+                src={`https://github.com/${msg.de}.png`}
               />
               <Text tag="strong">{msg.de}</Text>
               <Text
@@ -183,7 +202,7 @@ function MessageList(props) {
                 {new Date().toLocaleDateString()}
               </Text>
             </Box>
-            {msg.textoMensagem}
+            {msg.texto}
           </Text>
         );
       })}
