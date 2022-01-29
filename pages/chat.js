@@ -2,16 +2,30 @@ import { Box, Text, TextField, Image, Button } from "@skynexui/components";
 import React, { useEffect, useState } from "react";
 import appConfig from "../config.json";
 import { createClient } from "@supabase/supabase-js";
+import { useRouter } from "next/router";
+import { ButtonSendSticker } from "../src/components/ButtonSendSticker";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+
+function escutaMensagemEmTempoReal(adicionaMensagem) {
+  return supabaseClient
+    .from("MENSAGENS")
+    .on("INSERT", (dados) => {
+      adicionaMensagem(dados.new);
+    })
+    .subscribe();
+}
 
 export default function ChatPage() {
   // Sua lógica vai aqui
+  const roteamento = useRouter();
+  const usuarioLogado = roteamento.query.username;
   const [mensagem, setMensagem] = useState();
   const [listaMensagem, setListaMensagem] = useState([]);
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
   useEffect(() => {
     supabaseClient
       .from("MENSAGENS")
@@ -20,20 +34,25 @@ export default function ChatPage() {
       .then(({ data }) => {
         setListaMensagem(data);
       });
+
+    escutaMensagemEmTempoReal((novaMsg) => {
+      setListaMensagem((valorAtualDaLista) => {
+        return [novaMsg, ...valorAtualDaLista];
+      });
+    });
   }, []);
 
   function handleNovaMensagem(novaMensagem) {
     const mensagem = {
-      de: "vanessa",
+      de: usuarioLogado,
       texto: novaMensagem,
     };
-    supabaseClient
-      .from("MENSAGENS")
-      .insert([mensagem])
-      .then(({ data }) => {
-        setListaMensagem([data[0], ...listaMensagem]);
-      });
-    setMensagem("");
+    novaMensagem &&
+      (supabaseClient
+        .from("MENSAGENS")
+        .insert([mensagem])
+        .then(({ data }) => {}),
+      setMensagem(""));
   }
   // ./Sua lógica vai aqui
   return (
@@ -88,6 +107,11 @@ export default function ChatPage() {
               alignItems: "center",
             }}
           >
+            <ButtonSendSticker
+              onStickerClick={(sticker) => {
+                handleNovaMensagem(`:sticker:${sticker}`);
+              }}
+            />
             <TextField
               placeholder="Insira sua mensagem aqui..."
               type="textarea"
@@ -153,7 +177,7 @@ function MessageList(props) {
     <Box
       tag="ul"
       styleSheet={{
-        overflow: "scroll",
+        overflowY: "scroll",
         display: "flex",
         flexDirection: "column-reverse",
         flex: 1,
@@ -202,7 +226,16 @@ function MessageList(props) {
                 {new Date().toLocaleDateString()}
               </Text>
             </Box>
-            {msg.texto}
+            {msg.texto.startsWith(":sticker:") ? (
+              <Image
+                styleSheet={{
+                  maxWidth: "20%",
+                }}
+                src={msg.texto.replace(":sticker:", "")}
+              />
+            ) : (
+              msg.texto
+            )}
           </Text>
         );
       })}
